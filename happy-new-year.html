@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy New Year 2026!</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{
+    width:100%;height:100%;
+    font-family:'Arial',sans-serif;
+    overflow:hidden;
+    display:flex;justify-content:center;align-items:center;flex-direction:column;text-align:center;
+    color:#fff;
+    background: linear-gradient(-45deg,#ff9a9e,#fad0c4,#a1c4fd,#c2e9fb);
+    background-size: 400% 400%;
+    animation: gradientBG 30s ease infinite;
+  }
+  @keyframes gradientBG{
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+  }
+  h1{font-size:3em;margin-bottom:0.5em;text-shadow:2px 2px 15px rgba(0,0,0,0.3);}
+  p{font-size:1.5em;margin-bottom:1em;text-shadow:1px 1px 10px rgba(0,0,0,0.2);}
+  #countdown{font-size:2em;font-weight:bold;margin-bottom:1em;text-shadow:2px 2px 10px rgba(0,0,0,0.3);}
+  canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+  .modal{position:fixed;top:0;left:0;width:100%;height:100%;background: rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:0.6s;z-index:10;}
+  .modal.show{opacity:1;pointer-events:auto;}
+  .modal-content{background:#fff;color:#000;padding:30px;border-radius:20px;text-align:center;max-width:350px;box-shadow:0 0 20px rgba(0,0,0,0.3);animation:popup 0.6s ease forwards;}
+  @keyframes popup{0%{transform:scale(0.5);opacity:0;}100%{transform:scale(1);opacity:1;}}
+  #musicBtn{position:fixed;top:20px;right:20px;z-index:20;padding:10px 15px;background:#ff7f50;border:none;color:#fff;font-weight:bold;border-radius:10px;cursor:pointer;}
+  @media (max-width:768px){h1{font-size:2.5em;}p{font-size:1.2em;}#countdown{font-size:1.5em;}}
+  @media (max-width:480px){h1{font-size:2em;}p{font-size:1em;}#countdown{font-size:1.2em;}}
+</style>
+</head>
+<body>
+<h1>🎉 Happy New Year 2026! 🎉</h1>
+<p>Wishing you joy, success, and happiness!</p>
+<div id="countdown"></div>
+
+<canvas id="canvas"></canvas>
+
+<div class="modal" id="popupModal">
+  <div class="modal-content">
+    <h2>🎊 Happy New Year! 🎊</h2>
+    <button onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<!-- YouTube Audio Player (hidden) -->
+<div id="player" style="display:none;"></div>
+<button id="musicBtn" onclick="toggleMusic()">Pause Music</button>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+// ---------------- Countdown ----------------
+const countdownEl=document.getElementById('countdown');
+const newYear=new Date('Jan 1, 2026 00:00:00').getTime();
+function updateCountdown(){
+  const now=new Date().getTime();
+  const dist=newYear-now;
+  if(dist<0){ countdownEl.innerHTML="🎆 Happy New Year! 🎆"; celebrate(); clearInterval(countdownInterval); return; }
+  const d=Math.floor(dist/(1000*60*60*24));
+  const h=Math.floor((dist%(1000*60*60*24))/(1000*60*60));
+  const m=Math.floor((dist%(1000*60*60))/(1000*60));
+  const s=Math.floor((dist%(1000*60))/1000);
+  countdownEl.innerHTML=`${d}d ${h}h ${m}m ${s}s`;
+}
+const countdownInterval=setInterval(updateCountdown,1000);
+updateCountdown();
+
+// ---------------- Modal ----------------
+const modal=document.getElementById('popupModal');
+function closeModal(){ modal.classList.remove('show'); } // animations always on
+window.onload=function(){ modal.classList.add('show'); startEffects(); }
+
+// ---------------- YouTube Audio ----------------
+let player;
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('player', {
+    height: '0', // hidden
+    width: '0',
+    videoId: 'F0woXc0qxWk', // your YouTube video ID
+    playerVars: {
+      autoplay: 1,
+      loop: 1,
+      playlist: 'F0woXc0qxWk' // required for looping
+    },
+    events: {
+      onReady: (event) => {
+        event.target.unMute();
+        event.target.playVideo();
+      }
+    }
+  });
+}
+
+const musicBtn = document.getElementById('musicBtn');
+function toggleMusic() {
+  if(player && player.getPlayerState() === 1) { // playing
+    player.pauseVideo();
+    musicBtn.innerText = 'Play Music';
+  } else if(player) {
+    player.playVideo();
+    musicBtn.innerText = 'Pause Music';
+  }
+}
+
+// ---------------- Canvas & Particles ----------------
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let W=canvas.width=window.innerWidth;
+let H=canvas.height=window.innerHeight;
+window.addEventListener('resize',()=>{ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; });
+
+class Particle{
+  constructor(x,y,color,size,vx,vy,gravity=0){
+    this.x=x; this.y=y; this.color=color; this.size=size; this.vx=vx; this.vy=vy; this.alpha=1; this.gravity=gravity;
+  }
+  update(){
+    this.x+=this.vx; this.y+=this.vy;
+    this.vy+=this.gravity;
+    this.alpha-=0.01;
+    if(this.alpha<0) this.alpha=0;
+  }
+  draw(){ ctx.fillStyle=`rgba(${this.color},${this.alpha})`; ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill(); }
+}
+
+// Fireworks, confetti, balloons
+let fireworks=[], confetti=[], balloons=[];
+let fireworksInterval, confettiInterval, balloonInterval;
+let animationFrameId = null;
+
+function createFirework(x,y){
+  for(let i=0;i<30;i++){
+    const angle=Math.random()*2*Math.PI;
+    const speed=Math.random()*5+2;
+    fireworks.push(new Particle(x,y,'255,255,255',2+Math.random()*2,Math.cos(angle)*speed,Math.sin(angle)*speed,0.05));
+  }
+}
+
+function createConfetti(){
+  const x=Math.random()*W, y=-10;
+  const size=Math.random()*7+3;
+  const color=`${Math.floor(Math.random()*255)},${Math.floor(Math.random()*255)},${Math.floor(Math.random()*255)}`;
+  confetti.push(new Particle(x,y,color,size,(Math.random()-0.5)*1,Math.random()*2+1,0.05));
+}
+
+function createBalloon(){
+  const x=Math.random()*W, y=H+50;
+  const size=15+Math.random()*10;
+  const color=`${Math.floor(Math.random()*255)},${Math.floor(Math.random()*255)},${Math.floor(Math.random()*255)}`;
+  balloons.push(new Particle(x,y,color,size,(Math.random()-0.5)*0.5,-(1+Math.random()*2)));
+}
+
+// Start Effects (always on)
+function startEffects(){
+  fireworksInterval=setInterval(()=>{createFirework(Math.random()*W,Math.random()*H/2)},500);
+  confettiInterval=setInterval(createConfetti,150);
+  balloonInterval=setInterval(createBalloon,1000);
+  animate();
+}
+
+function animate(){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='rgba(0,0,0,0.08)';
+  ctx.fillRect(0,0,W,H);
+
+  fireworks.forEach(p=>{ p.update(); p.draw(); });
+  confetti.forEach(p=>{ p.update(); p.draw(); });
+  balloons.forEach(p=>{ p.update(); p.draw(); });
+
+  fireworks=fireworks.filter(p=>p.alpha>0);
+  confetti=confetti.filter(p=>p.alpha>0);
+  balloons=balloons.filter(p=>p.alpha>0);
+
+  animationFrameId=requestAnimationFrame(animate);
+}
+
+// Click Fireworks
+window.addEventListener('click',e=>{ createFirework(e.clientX,e.clientY); });
+
+// Celebration Trigger
+function celebrate(){for(let i=0;i<50;i++){createFirework(Math.random()*W,Math.random()*H/2);}}
+</script>
+</body>
+</html>
